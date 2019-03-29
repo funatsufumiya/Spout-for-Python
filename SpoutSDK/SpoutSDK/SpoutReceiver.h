@@ -57,6 +57,7 @@ class SPOUT_DLLEXP SpoutReceiver {
 	bool DrawSharedTexture(float max_x = 1.0, float max_y = 1.0, float aspect = 1.0, bool bInvert = true, GLuint HostFBO=0);
 	
 	int  GetSenderCount();
+	std::string pyGetSenderName(int index, int MaxSize = 256);
 	bool GetSenderName(int index, char* Sendername, int MaxSize = 256);
 	bool GetSenderInfo(const char* Sendername, unsigned int &width, unsigned int &height, HANDLE &dxShareHandle, DWORD &dwFormat);
 

@@ -82,7 +82,7 @@ def main():
     spoutSender.CreateSender('Spout Python Sender', spoutSenderWidth, spoutSenderHeight, 0)
 
     # init spout sender texture ID
-    senderTextureID = glGenTextures(1)
+    senderTextureID = glGenTextures(1).item()
 
     # initialise texture
     glBindTexture(GL_TEXTURE_2D, senderTextureID)

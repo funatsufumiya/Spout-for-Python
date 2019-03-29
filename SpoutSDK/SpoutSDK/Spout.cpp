@@ -19,6 +19,8 @@ BOOST_PYTHON_MODULE(SpoutSDK)
 		.def("SelectSenderPanel", &SpoutReceiver::SelectSenderPanel)
 		.def("GetWidth", &SpoutReceiver::GetWidth)
 		.def("GetHeight", &SpoutReceiver::GetHeight)
+		.def("GetSenderCount", &SpoutReceiver::GetSenderCount)
+		.def("GetSenderName", &SpoutReceiver::pyGetSenderName)
 		;
 }
 

@@ -94,7 +94,6 @@ unsigned int  SpoutReceiver::GetHeight(const char* theName) {
 //---------------------------------------------------------
 bool SpoutReceiver::ReceiveTexture(char* name, unsigned int &width, unsigned int &height, GLuint TextureID, GLuint TextureTarget, bool bInvert, GLuint HostFBO)
 {
-	
 	return spout.ReceiveTexture(name, width, height, TextureID, TextureTarget, bInvert, HostFBO);
 }
 
@@ -106,7 +105,15 @@ bool SpoutReceiver::pyReceiveTexture(const char* theName, unsigned int theWidth,
 	unsigned int width = theWidth;
 	unsigned int height = theHeight;
 
-	return spout.ReceiveTexture(name, width, height, TextureID, TextureTarget, bInvert, HostFBO);
+	bool flag = spout.ReceiveTexture(name, width, height, TextureID, TextureTarget, bInvert, HostFBO);
+
+	if (flag) {
+		if (width != theWidth || height != theHeight) {
+			printf("SpoutReceiver::pyReceiveTexture: texture size mismatch (expected %d x %d, but given %d x %d)\n", width, height, theWidth, theHeight);
+		}
+	}
+
+	return flag;
 }
 
 
@@ -199,6 +206,21 @@ bool SpoutReceiver::DrawSharedTexture(float max_x, float max_y, float aspect, bo
 bool SpoutReceiver::GetSenderName(int index, char* sendername, int MaxNameSize)
 {
 	return spout.GetSenderName(index, sendername, MaxNameSize);
+}
+
+//---------------------------------------------------------
+std::string SpoutReceiver::pyGetSenderName(int index, int MaxSize)
+{
+	char s[3000];
+	bool flag = GetSenderName(index, s, MaxSize);
+
+	if (flag) {
+		string str(s);
+		return str;
+	}
+	else {
+		return "";
+	}
 }
 
 //---------------------------------------------------------

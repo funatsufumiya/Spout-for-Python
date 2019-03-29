@@ -9,6 +9,7 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
+import datetime
 
 """parsing and configuration"""
 def parse_args():
@@ -53,14 +54,18 @@ def main():
     receiverName = args.spout_name 
     spoutReceiverWidth = args.spout_size[0]
     spoutReceiverHeight = args.spout_size[1]
+
+    print("spoutReceiverWidth", spoutReceiverWidth)
+    print("spoutReceiverHeight", spoutReceiverHeight)
+
     # create spout receiver
     spoutReceiver = SpoutSDK.SpoutReceiver()
 
 	# Its signature in c++ looks like this: bool pyCreateReceiver(const char* theName, unsigned int theWidth, unsigned int theHeight, bool bUseActive);
-    spoutReceiver.pyCreateReceiver(receiverName,spoutReceiverWidth,spoutReceiverHeight, False)
+    spoutReceiver.pyCreateReceiver(receiverName,spoutReceiverWidth,spoutReceiverHeight, True)
 
     # create texture for spout receiver
-    textureReceiveID = glGenTextures(1)    
+    textureReceiveID = glGenTextures(1).item()
     
     # initalise receiver texture
     glBindTexture(GL_TEXTURE_2D, textureReceiveID)
@@ -81,47 +86,55 @@ def main():
                 pygame.quit()
                 quit()
         
+        count = spoutReceiver.GetSenderCount()
+
         # receive texture
         # Its signature in c++ looks like this: bool pyReceiveTexture(const char* theName, unsigned int theWidth, unsigned int theHeight, GLuint TextureID, GLuint TextureTarget, bool bInvert, GLuint HostFBO);
-        spoutReceiver.pyReceiveTexture(receiverName, spoutReceiverWidth, spoutReceiverHeight, textureReceiveID, GL_TEXTURE_2D, False, 0)
+        flag = spoutReceiver.pyReceiveTexture(receiverName, spoutReceiverWidth, spoutReceiverHeight, textureReceiveID, GL_TEXTURE_2D, False, 0)
        
-        glBindTexture(GL_TEXTURE_2D, textureReceiveID)
+        if(flag):
+            #print(datetime.datetime.now(), "Connected! Receiving")
 
-        # copy pixel byte array from received texture - this example doesn't use it, but may be useful for those who do want pixel info      
-        # data = glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, outputType=None)  #Using GL_RGB can use GL_RGBA 
+            glBindTexture(GL_TEXTURE_2D, textureReceiveID)
+
+            # copy pixel byte array from received texture - this example doesn't use it, but may be useful for those who do want pixel info      
+            # data = glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, outputType=None)  #Using GL_RGB can use GL_RGBA 
+            
+            # swap width and height data around due to oddness with glGetTextImage. http://permalink.gmane.org/gmane.comp.python.opengl.user/2423
+            # data.shape = (data.shape[1], data.shape[0], data.shape[2])
+            
+            # setup window to draw to screen
+            glActiveTexture(GL_TEXTURE0)
+
+            # clean start
+            glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT )
+            # reset drawing perspective
+            glLoadIdentity()
         
-        # swap width and height data around due to oddness with glGetTextImage. http://permalink.gmane.org/gmane.comp.python.opengl.user/2423
-        # data.shape = (data.shape[1], data.shape[0], data.shape[2])
-        
-        # setup window to draw to screen
-        glActiveTexture(GL_TEXTURE0)
+            # draw texture on screen
+            # glPushMatrix() use these lines if you want to scale your received texture
+            # glScale(0.3, 0.3, 0.3)
+            glBegin(GL_QUADS)
 
-        # clean start
-        glClear(GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT )
-        # reset drawing perspective
-        glLoadIdentity()
-       
-        # draw texture on screen
-        # glPushMatrix() use these lines if you want to scale your received texture
-        # glScale(0.3, 0.3, 0.3)
-        glBegin(GL_QUADS)
+            glTexCoord(0,0)        
+            glVertex2f(0,0)
 
-        glTexCoord(0,0)        
-        glVertex2f(0,0)
+            glTexCoord(1,0)
+            glVertex2f(spoutReceiverWidth,0)
 
-        glTexCoord(1,0)
-        glVertex2f(spoutReceiverWidth,0)
+            glTexCoord(1,1)
+            glVertex2f(spoutReceiverWidth,spoutReceiverHeight)
 
-        glTexCoord(1,1)
-        glVertex2f(spoutReceiverWidth,spoutReceiverHeight)
-
-        glTexCoord(0,1)
-        glVertex2f(0,spoutReceiverHeight)
-        
-        glEnd()
-        # glPopMatrix() make sure to pop your matrix if you're doing a scale        
-        # update window
-        pygame.display.flip()        
+            glTexCoord(0,1)
+            glVertex2f(0,spoutReceiverHeight)
+            
+            glEnd()
+            # glPopMatrix() make sure to pop your matrix if you're doing a scale        
+            # update window
+            pygame.display.flip()
+        else:
+            print("sender count: ", count)
+            #spoutReceiver.SelectSenderPanel("please choose sender");      
 
 if __name__ == '__main__':
     main()
